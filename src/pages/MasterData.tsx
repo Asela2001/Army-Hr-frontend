@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 const MasterData = () => {
@@ -26,6 +26,29 @@ const MasterData = () => {
     };
     fetchMasterData();
   }, [tableName]);
+  const handleRowClick = (row) => {
+    // Debug: Log the entire row to find the correct ID field
+    console.log(`Row data:`, row);
+    // Try different possible ID fields
+    const id =
+      row.id ||
+      row._id ||
+      row[Object.keys(row).find((key) => key.toLowerCase().includes("id"))];
+    console.log(`Detected ID: ${id}`); // Debug log for the detected ID
+    if (id) {
+      navigate(`/master/${tableName}/view/${id}`);
+    } else {
+      console.error("No valid ID found for this row:", row);
+    }
+  };
+
+  const handleCreateNew = () => {
+    const columns = tableData.length > 0 ? Object.keys(tableData[0]) : [];
+    if (columns.length === 0 && tableData.length === 0) {
+      console.warn("No data available to determine columns. Using fallback.");
+    }
+    navigate(`/master/${tableName}/create`, { state: { columns } });
+  };
   return (
     <div className="min-h-screen bg-gray-100 p-10">
       {tableName ? (
@@ -49,7 +72,11 @@ const MasterData = () => {
                 </thead>
                 <tbody>
                   {tableData.map((row, index) => (
-                    <tr key={index}>
+                    <tr
+                      key={index}
+                      className="cursor-pointer hover:bg-gray-200"
+                      onClick={() => handleRowClick(row)}
+                    >
                       {Object.values(row).map((value, i) => (
                         <td key={i} className="border p-2">
                           {value}
@@ -61,12 +88,21 @@ const MasterData = () => {
               </table>
             </div>
           )}
-          <button
-            className="mt-4 px-4 py-2 bg-[#7c8b24] text-white rounded hover:bg-[#6b7a1f]"
-            onClick={() => navigate("/master")}
-          >
-            Back
-          </button>
+          <div className="flex justify-between mt-6">
+            <button
+              className="px-4 py-2 bg-[#7c8b24] text-white rounded hover:bg-[#6b7a1f]"
+              onClick={() => navigate("/master")}
+            >
+              Back
+            </button>
+            <button
+              className="px-4 py-2 bg-[#7c8b24] text-white rounded hover:bg-[#6b7a1f]"
+              onClick={handleCreateNew}
+              disabled={loading}
+            >
+              Create New Record
+            </button>
+          </div>
         </div>
       ) : (
         <p className="text-center text-gray-500">
