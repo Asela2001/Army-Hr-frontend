@@ -43,7 +43,7 @@ const EditRecord = () => {
       const response = await fetch(
         `http://localhost:3000/master/${tableName}/${id}`,
         {
-          method: "PATCH", // Use PUT or PATCH based on your backend
+          method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
