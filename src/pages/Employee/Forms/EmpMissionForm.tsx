@@ -1,9 +1,14 @@
 import React, { useState } from "react";
-import { useFieldArray, useFormContext } from "react-hook-form";
+import { useFormContext, useFieldArray } from "react-hook-form";
 
-const EmpMissionForm = ({ empNo, masterData }) => {
-  // Fixed props
-  const { control, register } = useFormContext(); // Added register
+// Hardcoded options for Mission dropdown (later fetch from master API)
+const mockMissions = [
+  { id: "MIS001", name: "Mission 1", location: "Loc A", type: "Type X" },
+  { id: "MIS002", name: "Mission 2", location: "Loc B", type: "Type Y" },
+];
+
+const EmpMissionForm = ({ empNo }) => {
+  const { control, register } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
     name: "emp_mission",
@@ -29,13 +34,15 @@ const EmpMissionForm = ({ empNo, masterData }) => {
         expire_date: "",
         role: "",
       });
+    } else {
+      alert("Please fill all fields to add a record.");
     }
   };
 
   return (
-    <div>
+    <div className="space-y-4">
       {/* Add New Row Form */}
-      <div className="mb-4 p-4 bg-gray-50 rounded">
+      <div className="p-4 bg-gray-50 rounded">
         <h4 className="font-semibold mb-2">Add New Mission</h4>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <select
@@ -46,15 +53,11 @@ const EmpMissionForm = ({ empNo, masterData }) => {
             className="p-2 border rounded"
           >
             <option value="">Select Mission</option>
-            {masterData.missions.map(
-              (
-                m // Fixed
-              ) => (
-                <option key={m.mission_id} value={m.mission_id}>
-                  {m.name} ({m.location}, {m.type})
-                </option>
-              )
-            )}
+            {mockMissions.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name} ({m.location}, {m.type})
+              </option>
+            ))}
           </select>
           <input
             type="date"
@@ -63,7 +66,6 @@ const EmpMissionForm = ({ empNo, masterData }) => {
               setNewMission({ ...newMission, start_date: e.target.value })
             }
             className="p-2 border rounded"
-            placeholder="Start Date"
           />
           <input
             type="date"
@@ -72,7 +74,6 @@ const EmpMissionForm = ({ empNo, masterData }) => {
               setNewMission({ ...newMission, expire_date: e.target.value })
             }
             className="p-2 border rounded"
-            placeholder="Expire Date"
           />
           <input
             value={newMission.role}
@@ -87,58 +88,73 @@ const EmpMissionForm = ({ empNo, masterData }) => {
         <button
           type="button"
           onClick={addMission}
-          className="mt-2 px-4 py-2 bg-green-500 text-white rounded"
+          className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
         >
           Add Mission
         </button>
       </div>
 
       {/* Existing Rows */}
-      {fields.map((field, index) => (
-        <div
-          key={field.id}
-          className="flex items-center p-2 border rounded mb-2"
-        >
-          <select
-            {...register(`emp_mission.${index}.mission_id`)}
-            className="flex-1 p-2 border rounded mr-2"
+      <div>
+        <h4 className="font-semibold mb-2">Missions</h4>
+        {fields.map((field, index) => (
+          <div
+            key={field.id}
+            className="flex items-center p-2 border rounded mb-2 bg-white"
           >
-            {" "}
-            {/* register defined */}
-            <option value="">Select</option>
-            {masterData.missions.map(
-              (
-                m // Fixed
-              ) => (
-                <option key={m.mission_id} value={m.mission_id}>
+            <select
+              {...register(`emp_mission.${index}.mission_id`, {
+                required: "Mission ID required",
+              })}
+              className="flex-1 p-2 border rounded mr-2"
+            >
+              <option value="">Select Mission</option>
+              {mockMissions.map((m) => (
+                <option key={m.id} value={m.id}>
                   {m.name}
                 </option>
-              )
-            )}
-          </select>
-          <input
-            type="date"
-            {...register(`emp_mission.${index}.start_date`)}
-            className="flex-1 p-2 border rounded mr-2"
-          />
-          <input
-            type="date"
-            {...register(`emp_mission.${index}.expire_date`)}
-            className="flex-1 p-2 border rounded mr-2"
-          />
-          <input
-            {...register(`emp_mission.${index}.role`)}
-            className="flex-1 p-2 border rounded mr-2"
-          />
-          <button
-            type="button"
-            onClick={() => remove(index)}
-            className="px-4 py-2 bg-red-500 text-white rounded"
-          >
-            Remove
-          </button>
-        </div>
-      ))}
+              ))}
+            </select>
+            <input
+              type="date"
+              {...register(`emp_mission.${index}.start_date`, {
+                required: "Start Date required",
+              })}
+              className="flex-1 p-2 border rounded mr-2"
+            />
+            <input
+              type="date"
+              {...register(`emp_mission.${index}.expire_date`, {
+                required: "Expire Date required",
+              })}
+              className="flex-1 p-2 border rounded mr-2"
+            />
+            <input
+              {...register(`emp_mission.${index}.role`, {
+                required: "Role required",
+                maxLength: { value: 10, message: "Max 10 chars" },
+              })}
+              className="flex-1 p-2 border rounded mr-2"
+              maxLength={10}
+            />
+            <input
+              type="hidden"
+              {...register(`emp_mission.${index}.emp_no`)}
+              value={empNo}
+            />
+            <button
+              type="button"
+              onClick={() => remove(index)}
+              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              Remove
+            </button>
+          </div>
+        ))}
+        {fields.length === 0 && (
+          <p className="text-gray-500">No missions added yet.</p>
+        )}
+      </div>
     </div>
   );
 };
