@@ -1,11 +1,6 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFormContext, useFieldArray } from "react-hook-form";
-
-// Hardcoded options for Medical dropdown (later fetch from master API)
-const mockMedicals = [
-  { id: "MED001", name: "Medical 1", type: "Type A" },
-  { id: "MED002", name: "Medical 2", type: "Type B" },
-];
+import axios from "axios";
 
 const EmpMedicalForm = ({ empNo }) => {
   const { control, register } = useFormContext();
@@ -19,6 +14,30 @@ const EmpMedicalForm = ({ empNo }) => {
     expire_date: "",
     status: "",
   });
+
+  const [medicals, setMedicals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch master data on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const medicalRes = await axios.get(
+          "http://localhost:3000/master/medical"
+        );
+        setMedicals(medicalRes.data || []);
+      } catch (err) {
+        console.error("Failed to fetch master data for Emp Medical:", err);
+        setError("Failed to load medical options. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const addMedical = () => {
     if (
@@ -39,6 +58,14 @@ const EmpMedicalForm = ({ empNo }) => {
     }
   };
 
+  if (loading) {
+    return <div className="text-center p-4">Loading Medical data...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500 text-center p-4">{error}</div>;
+  }
+
   return (
     <div className="space-y-4">
       {/* Add New Row Form */}
@@ -53,8 +80,8 @@ const EmpMedicalForm = ({ empNo }) => {
             className="p-2 border rounded"
           >
             <option value="">Select Medical</option>
-            {mockMedicals.map((m) => (
-              <option key={m.id} value={m.id}>
+            {medicals.map((m) => (
+              <option key={m.medical_id} value={m.medical_id}>
                 {m.name} ({m.type})
               </option>
             ))}
@@ -109,8 +136,8 @@ const EmpMedicalForm = ({ empNo }) => {
               className="flex-1 p-2 border rounded mr-2"
             >
               <option value="">Select Medical</option>
-              {mockMedicals.map((m) => (
-                <option key={m.id} value={m.id}>
+              {medicals.map((m) => (
+                <option key={m.medical_id} value={m.medical_id}>
                   {m.name}
                 </option>
               ))}

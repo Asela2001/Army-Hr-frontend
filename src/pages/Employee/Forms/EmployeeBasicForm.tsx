@@ -1,21 +1,26 @@
-import { useFormContext } from 'react-hook-form';
 
-const EmployeeBasicForm = ({emp_no}) => {
-    const {
-      register,
-      formState: { errors },
-    } = useFormContext();
+import { useFormContext } from "react-hook-form";
+
+const EmployeeBasicForm = ({ empNo }) => {
+  // Standardized prop to empNo
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext();
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label className="block text-sm font-medium mb-1">EMP No</label>
         <input
-          {...register("emp_no")}
-          value={emp_no}
+          {...register("emp_no", {
+            required: "EMP No is required",
+            validate: (v) => v.length <= 10 || "Must be 10 characters",
+          })}
+          value={empNo}
           className={`w-full p-2 border rounded ${
             errors.emp_no ? "border-red-500" : "border-gray-300"
           }`}
-          readOnly // Auto-filled
+          //readOnly // Auto-filled
         />
         {errors.emp_no && (
           <p className="text-red-500 text-xs mt-1">{errors.emp_no.message}</p>
@@ -25,10 +30,14 @@ const EmployeeBasicForm = ({emp_no}) => {
       <div>
         <label className="block text-sm font-medium mb-1">NIC No</label>
         <input
-          {...register("nic_no")}
+          {...register("nic_no", {
+            required: "NIC No is required",
+            validate: (v) => v.length === 12 || "Must be 12 characters",
+          })}
           className={`w-full p-2 border rounded ${
             errors.nic_no ? "border-red-500" : "border-gray-300"
           }`}
+          maxLength={12}
         />
         {errors.nic_no && (
           <p className="text-red-500 text-xs mt-1">{errors.nic_no.message}</p>
@@ -36,9 +45,23 @@ const EmployeeBasicForm = ({emp_no}) => {
       </div>
 
       <div>
+        <label className="block text-sm font-medium mb-1">Passport No</label>
+        <input
+          {...register("passport_no", {
+            maxLength: { value: 20, message: "Max 20 characters" },
+          })}
+          className="w-full p-2 border rounded border-gray-300"
+          maxLength={20}
+        />
+      </div>
+
+      <div>
         <label className="block text-sm font-medium mb-1">First Name</label>
         <input
-          {...register("first_name")}
+          {...register("first_name", {
+            required: "First name is required",
+            maxLength: { value: 20, message: "Max 20 characters" },
+          })}
           className={`w-full p-2 border rounded ${
             errors.first_name ? "border-red-500" : "border-gray-300"
           }`}
@@ -54,7 +77,10 @@ const EmployeeBasicForm = ({emp_no}) => {
       <div>
         <label className="block text-sm font-medium mb-1">Last Name</label>
         <input
-          {...register("last_name")}
+          {...register("last_name", {
+            required: "Last name is required",
+            maxLength: { value: 20, message: "Max 20 characters" },
+          })}
           className={`w-full p-2 border rounded ${
             errors.last_name ? "border-red-500" : "border-gray-300"
           }`}
@@ -71,7 +97,7 @@ const EmployeeBasicForm = ({emp_no}) => {
         <label className="block text-sm font-medium mb-1">Date of Birth</label>
         <input
           type="date"
-          {...register("dob")}
+          {...register("dob", { required: "Date of birth is required" })}
           className={`w-full p-2 border rounded ${
             errors.dob ? "border-red-500" : "border-gray-300"
           }`}
@@ -84,7 +110,10 @@ const EmployeeBasicForm = ({emp_no}) => {
       <div>
         <label className="block text-sm font-medium mb-1">Gender</label>
         <select
-          {...register("gender")}
+          {...register("gender", {
+            required: "Gender is required",
+            validate: (v) => ["M", "F"].includes(v) || "Must be M or F",
+          })}
           className={`w-full p-2 border rounded ${
             errors.gender ? "border-red-500" : "border-gray-300"
           }`}
@@ -101,7 +130,9 @@ const EmployeeBasicForm = ({emp_no}) => {
       <div>
         <label className="block text-sm font-medium mb-1">Religion</label>
         <input
-          {...register("religion")}
+          {...register("religion", {
+            maxLength: { value: 20, message: "Max 20 characters" },
+          })}
           className="w-full p-2 border rounded border-gray-300"
           maxLength={20}
         />
@@ -110,7 +141,9 @@ const EmployeeBasicForm = ({emp_no}) => {
       <div>
         <label className="block text-sm font-medium mb-1">Nationality</label>
         <input
-          {...register("nationality")}
+          {...register("nationality", {
+            maxLength: { value: 20, message: "Max 20 characters" },
+          })}
           defaultValue="Sri Lankan"
           className="w-full p-2 border rounded border-gray-300"
           maxLength={20}
@@ -132,4 +165,4 @@ const EmployeeBasicForm = ({emp_no}) => {
   );
 };
 
-export default EmployeeBasicForm
+export default EmployeeBasicForm;

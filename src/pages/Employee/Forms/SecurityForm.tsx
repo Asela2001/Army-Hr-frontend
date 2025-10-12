@@ -1,22 +1,50 @@
-import React from "react";
+import { useState, useEffect } from "react";
 import { useFormContext } from "react-hook-form";
-
-// Hardcoded options for Clearance dropdown (later fetch from master API)
-const mockClearances = [
-  { id: "SEC001", level: "Level 1" },
-  { id: "SEC002", level: "Level 2" },
-];
+import axios from "axios";
 
 const SecurityForm = ({ empNo }) => {
   const {
     register,
     formState: { errors },
   } = useFormContext();
+  const [clearances, setClearances] = useState([]); // State for dynamic data
+  const [loading, setLoading] = useState(true); // Loading state
+  const [fetchError, setFetchError] = useState(null); // Error state
+
+  // Fetch dynamic clearances from backend
+  useEffect(() => {
+    const fetchClearances = async () => {
+      try {
+        setLoading(true);
+        setFetchError(null);
+        const response = await axios.get(
+          "http://localhost:3000/master/security-clearance"
+        );
+        setClearances(response.data || []); // Assume backend returns array of { clearance_id, sc_level, ... }
+      } catch (error) {
+        console.error("Failed to fetch clearances:", error);
+        setFetchError("Failed to load clearances. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClearances();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="text-center p-4">Loading Security Clearances...</div>
+    );
+  }
+
+  if (fetchError) {
+    return <div className="text-red-500 text-center p-4">{fetchError}</div>;
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <input type="hidden" {...register("security.emp_no")} value={empNo} />{" "}
-      {/* Auto-filled */}
+      <input type="hidden" {...register("security.emp_no")} value={empNo} />
       <div>
         <label className="block text-sm font-medium mb-1">Security Level</label>
         <input
@@ -78,9 +106,9 @@ const SecurityForm = ({ empNo }) => {
           }`}
         >
           <option value="">Select Clearance</option>
-          {mockClearances.map((clearance) => (
-            <option key={clearance.id} value={clearance.id}>
-              {clearance.level}
+          {clearances.map((clearance) => (
+            <option key={clearance.clearance_id} value={clearance.clearance_id}>
+              {clearance.sc_level}
             </option>
           ))}
         </select>

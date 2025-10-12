@@ -1,11 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useFormContext, useFieldArray } from "react-hook-form";
-
-// Hardcoded options for Mission dropdown (later fetch from master API)
-const mockMissions = [
-  { id: "MIS001", name: "Mission 1", location: "Loc A", type: "Type X" },
-  { id: "MIS002", name: "Mission 2", location: "Loc B", type: "Type Y" },
-];
+import axios from "axios";
 
 const EmpMissionForm = ({ empNo }) => {
   const { control, register } = useFormContext();
@@ -19,6 +14,29 @@ const EmpMissionForm = ({ empNo }) => {
     expire_date: "",
     role: "",
   });
+  const [missions, setMissions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch master data on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const missionRes = await axios.get(
+          "http://localhost:3000/master/mission"
+        );
+        setMissions(missionRes.data || []);
+      } catch (err) {
+        console.error("Failed to fetch master data for Emp Mission:", err);
+        setError("Failed to load mission options. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const addMission = () => {
     if (
@@ -39,6 +57,14 @@ const EmpMissionForm = ({ empNo }) => {
     }
   };
 
+  if (loading) {
+    return <div className="text-center p-4">Loading Mission data...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500 text-center p-4">{error}</div>;
+  }
+
   return (
     <div className="space-y-4">
       {/* Add New Row Form */}
@@ -53,8 +79,8 @@ const EmpMissionForm = ({ empNo }) => {
             className="p-2 border rounded"
           >
             <option value="">Select Mission</option>
-            {mockMissions.map((m) => (
-              <option key={m.id} value={m.id}>
+            {missions.map((m) => (
+              <option key={m.mission_id} value={m.mission_id}>
                 {m.name} ({m.location}, {m.type})
               </option>
             ))}
@@ -109,8 +135,8 @@ const EmpMissionForm = ({ empNo }) => {
               className="flex-1 p-2 border rounded mr-2"
             >
               <option value="">Select Mission</option>
-              {mockMissions.map((m) => (
-                <option key={m.id} value={m.id}>
+              {missions.map((m) => (
+                <option key={m.mission_id} value={m.mission_id}>
                   {m.name}
                 </option>
               ))}

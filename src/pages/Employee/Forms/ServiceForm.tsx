@@ -1,29 +1,55 @@
-import React from "react";
-import { useFormContext } from "react-hook-form";
 
-// Hardcoded options for dropdowns (later fetch from master API)
-const mockRegiments = [
-  { id: "REG001", name: "Regiment 1" },
-  { id: "REG002", name: "Regiment 2" },
-];
-const mockUnits = [
-  { id: "UNIT001", name: "Unit 1" },
-  { id: "UNIT002", name: "Unit 2" },
-];
-const mockRanks = [
-  { id: "RANK001", name: "Rank 1" },
-  { id: "RANK002", name: "Rank 2" },
-];
-const mockAppointments = [
-  { id: "APP001", name: "Appointment 1" },
-  { id: "APP002", name: "Appointment 2" },
-];
+import { useFormContext } from "react-hook-form";
+import axios from "axios";
+import { useEffect, useState } from "react";
+
 
 const ServiceForm = ({ empNo }) => {
   const {
     register,
     formState: { errors },
   } = useFormContext();
+
+  const [regiments, setRegiments] = useState([]);
+  const [units, setUnits] = useState([]);
+  const [ranks, setRanks] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch master data on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [regRes, unitRes, rankRes, appRes] = await Promise.all([
+          axios.get("http://localhost:3000/master/regiment"),
+          axios.get("http://localhost:3000/master/unit"),
+          axios.get("http://localhost:3000/master/rank"),
+          axios.get("http://localhost:3000/master/appointment"),
+        ]);
+        setRegiments(regRes.data || []);
+        setUnits(unitRes.data || []);
+        setRanks(rankRes.data || []);
+        setAppointments(appRes.data || []);
+      } catch (err) {
+        console.error("Failed to fetch master data for Service:", err);
+        setError("Failed to load dropdown options. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center p-4">Loading Service data...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500 text-center p-4">{error}</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -38,7 +64,7 @@ const ServiceForm = ({ empNo }) => {
             <input
               {...register("service.service_no", {
                 required: "Service No is required",
-                validate: (v) => v.length === 10 || "Must be 10 characters",
+                validate: (v) => v.length <= 10 || "Must be 10 characters",
               })}
               className={`w-full p-2 border rounded ${
                 errors.service?.service_no
@@ -67,8 +93,8 @@ const ServiceForm = ({ empNo }) => {
               }`}
             >
               <option value="">Select Regiment</option>
-              {mockRegiments.map((reg) => (
-                <option key={reg.id} value={reg.id}>
+              {regiments.map((reg) => (
+                <option key={reg.regiment_id} value={reg.regiment_id}>
                   {reg.name}
                 </option>
               ))}
@@ -89,8 +115,8 @@ const ServiceForm = ({ empNo }) => {
               }`}
             >
               <option value="">Select Unit</option>
-              {mockUnits.map((unit) => (
-                <option key={unit.id} value={unit.id}>
+              {units.map((unit) => (
+                <option key={unit.unit_id} value={unit.unit_id}>
                   {unit.name}
                 </option>
               ))}
@@ -111,9 +137,9 @@ const ServiceForm = ({ empNo }) => {
               }`}
             >
               <option value="">Select Rank</option>
-              {mockRanks.map((rank) => (
-                <option key={rank.id} value={rank.id}>
-                  {rank.name}
+              {ranks.map((rank) => (
+                <option key={rank.rank_id} value={rank.rank_id}>
+                  {rank.r_name}
                 </option>
               ))}
             </select>
@@ -140,9 +166,9 @@ const ServiceForm = ({ empNo }) => {
               }`}
             >
               <option value="">Select Rank</option>
-              {mockRanks.map((rank) => (
-                <option key={rank.id} value={rank.id}>
-                  {rank.name}
+              {ranks.map((rank) => (
+                <option key={rank.rank_id} value={rank.rank_id}>
+                  {rank.r_name}
                 </option>
               ))}
             </select>
@@ -168,8 +194,8 @@ const ServiceForm = ({ empNo }) => {
               }`}
             >
               <option value="">Select Appointment</option>
-              {mockAppointments.map((appt) => (
-                <option key={appt.id} value={appt.id}>
+              {appointments.map((appt) => (
+                <option key={appt.appointment_id} value={appt.appointment_id}>
                   {appt.name}
                 </option>
               ))}
@@ -235,8 +261,8 @@ const ServiceForm = ({ empNo }) => {
               }`}
             >
               <option value="">Select Unit</option>
-              {mockUnits.map((unit) => (
-                <option key={unit.id} value={unit.id}>
+              {units.map((unit) => (
+                <option key={unit.unit_id} value={unit.unit_id}>
                   {unit.name}
                 </option>
               ))}
@@ -257,9 +283,9 @@ const ServiceForm = ({ empNo }) => {
               }`}
             >
               <option value="">Select Rank</option>
-              {mockRanks.map((rank) => (
-                <option key={rank.id} value={rank.id}>
-                  {rank.name}
+              {ranks.map((rank) => (
+                <option key={rank.rank_id} value={rank.rank_id}>
+                  {rank.r_name}
                 </option>
               ))}
             </select>
@@ -283,8 +309,8 @@ const ServiceForm = ({ empNo }) => {
               }`}
             >
               <option value="">Select Regiment</option>
-              {mockRegiments.map((reg) => (
-                <option key={reg.id} value={reg.id}>
+              {regiments.map((reg) => (
+                <option key={reg.regiment_id} value={reg.regiment_id}>
                   {reg.name}
                 </option>
               ))}
@@ -311,8 +337,8 @@ const ServiceForm = ({ empNo }) => {
               }`}
             >
               <option value="">Select Appointment</option>
-              {mockAppointments.map((appt) => (
-                <option key={appt.id} value={appt.id}>
+              {appointments.map((appt) => (
+                <option key={appt.appointment_id} value={appt.appointment_id}>
                   {appt.name}
                 </option>
               ))}

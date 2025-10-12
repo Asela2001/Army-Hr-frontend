@@ -1,21 +1,50 @@
 import React from "react";
 import { useFormContext } from "react-hook-form";
+import axios from "axios";
+import { useEffect, useState } from "react";
 
-// Hardcoded options for dropdowns (later fetch from master API)
-const mockAllowances = [
-  { id: "ALL001", name: "Allowance 1", amount: 5000 },
-  { id: "ALL002", name: "Allowance 2", amount: 10000 },
-];
-const mockLoans = [
-  { id: "LOAN001", name: "Loan 1", amount: 20000 },
-  { id: "LOAN002", name: "Loan 2", amount: 50000 },
-];
+
 
 const PaymentForm = ({ empNo }) => {
   const {
     register,
     formState: { errors },
   } = useFormContext();
+
+  const [allowances, setAllowances] = useState([]);
+  const [loans, setLoans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch master data on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [allowRes, loanRes] = await Promise.all([
+          axios.get("http://localhost:3000/master/allowance"),
+          axios.get("http://localhost:3000/master/loan"),
+        ]);
+        setAllowances(allowRes.data || []);
+        setLoans(loanRes.data || []);
+      } catch (err) {
+        console.error("Failed to fetch master data for Payment:", err);
+        setError("Failed to load dropdown options. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center p-4">Loading Payment data...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500 text-center p-4">{error}</div>;
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -26,7 +55,7 @@ const PaymentForm = ({ empNo }) => {
         <input
           {...register("payment.pay_code", {
             required: "Pay Code is required",
-            validate: (v) => v.length === 10 || "Must be 10 characters",
+            validate: (v) => v.length <= 10 || "Must be 10 characters",
           })}
           className={`w-full p-2 border rounded ${
             errors.payment?.pay_code ? "border-red-500" : "border-gray-300"
@@ -125,8 +154,8 @@ const PaymentForm = ({ empNo }) => {
           }`}
         >
           <option value="">Select Allowance</option>
-          {mockAllowances.map((allowance) => (
-            <option key={allowance.id} value={allowance.id}>
+          {allowances.map((allowance) => (
+            <option key={allowance.allowance_id} value={allowance.allowance_id}>
               {allowance.name} (LKR {allowance.amount})
             </option>
           ))}
@@ -146,9 +175,9 @@ const PaymentForm = ({ empNo }) => {
           }`}
         >
           <option value="">Select Loan</option>
-          {mockLoans.map((loan) => (
-            <option key={loan.id} value={loan.id}>
-              {loan.name} (LKR {loan.amount})
+          {loans.map((loan) => (
+            <option key={loan.loan_id} value={loan.loan_id}>
+              {loan.l_name} (LKR {loan.amount})
             </option>
           ))}
         </select>

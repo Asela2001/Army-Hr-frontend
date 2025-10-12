@@ -1,11 +1,6 @@
-import React, { useState } from "react";
+import { useState, useEffect  } from "react";
 import { useFormContext, useFieldArray } from "react-hook-form";
-
-// Hardcoded options for Award dropdown (later fetch from master API)
-const mockAwards = [
-  { id: "AWD001", name: "Award 1", type: "Type A" },
-  { id: "AWD002", name: "Award 2", type: "Type B" },
-];
+import axios from "axios";
 
 const EmpAwardForm = ({ empNo }) => {
   const { control, register } = useFormContext();
@@ -19,6 +14,27 @@ const EmpAwardForm = ({ empNo }) => {
     expire_date: "",
     description: "",
   });
+  const [awards, setAwards] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch master data on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const awardRes = await axios.get("http://localhost:3000/master/award");
+        setAwards(awardRes.data || []);
+      } catch (err) {
+        console.error("Failed to fetch master data for Emp Award:", err);
+        setError("Failed to load award options. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const addAward = () => {
     if (
@@ -39,6 +55,14 @@ const EmpAwardForm = ({ empNo }) => {
     }
   };
 
+  if (loading) {
+    return <div className="text-center p-4">Loading Award data...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500 text-center p-4">{error}</div>;
+  }
+
   return (
     <div className="space-y-4">
       {/* Add New Row Form */}
@@ -53,8 +77,8 @@ const EmpAwardForm = ({ empNo }) => {
             className="p-2 border rounded"
           >
             <option value="">Select Award</option>
-            {mockAwards.map((a) => (
-              <option key={a.id} value={a.id}>
+            {awards.map((a) => (
+              <option key={a.award_id} value={a.award_id}>
                 {a.name} ({a.type})
               </option>
             ))}
@@ -109,8 +133,8 @@ const EmpAwardForm = ({ empNo }) => {
               className="flex-1 p-2 border rounded mr-2"
             >
               <option value="">Select Award</option>
-              {mockAwards.map((a) => (
-                <option key={a.id} value={a.id}>
+              {awards.map((a) => (
+                <option key={a.award_id} value={a.award_id}>
                   {a.name}
                 </option>
               ))}
