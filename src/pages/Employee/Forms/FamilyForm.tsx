@@ -2,7 +2,6 @@ import React from "react";
 import { useFormContext } from "react-hook-form";
 
 const FamilyForm = ({ empNo }) => {
-  // Fixed prop
   const {
     register,
     watch,
@@ -11,12 +10,43 @@ const FamilyForm = ({ empNo }) => {
   const maritalStatus = watch("marital_status");
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <input type="hidden" {...register("emp_no")} value={empNo} />{" "}
-      {/* Fixed value */}
+      <div>
+        <label className="block text-sm font-medium mb-1">EMP No (Manual)</label>
+        <input
+          {...register("emp_no")}
+          defaultValue={empNo}
+          className={`w-full p-2 border rounded ${
+            errors.emp_no ? "border-red-500" : "border-gray-300"
+          }`}
+          placeholder="e.g., EMP001"
+        />
+        {errors.emp_no && (
+          <p className="text-red-500 text-xs mt-1">{errors.emp_no.message}</p>
+        )}
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">
+          Family ID (Manual)
+        </label>
+        <input
+          {...register("family_id", { required: "Family ID is required" })}
+          className={`w-full p-2 border rounded ${
+            errors.family_id ? "border-red-500" : "border-gray-300"
+          }`}
+          placeholder="e.g., FAM001"
+        />
+        {errors.family_id && (
+          <p className="text-red-500 text-xs mt-1">
+            {errors.family_id.message}
+          </p>
+        )}
+      </div>
       <div>
         <label className="block text-sm font-medium mb-1">Marital Status</label>
         <select
-          {...register("marital_status")}
+          {...register("marital_status", {
+            required: "Marital Status is required",
+          })}
           className={`w-full p-2 border rounded ${
             errors.marital_status ? "border-red-500" : "border-gray-300"
           }`}
@@ -55,7 +85,7 @@ const FamilyForm = ({ empNo }) => {
         </label>
         <input
           type="number"
-          {...register("number_of_children")}
+          {...register("number_of_children", { min: 0, max: 99 })}
           min={0}
           max={99}
           className="w-full p-2 border rounded border-gray-300"

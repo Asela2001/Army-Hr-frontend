@@ -1,8 +1,6 @@
-
 import { useFormContext } from "react-hook-form";
 import axios from "axios";
 import { useEffect, useState } from "react";
-
 
 const ServiceForm = ({ empNo }) => {
   const {
@@ -59,6 +57,29 @@ const ServiceForm = ({ empNo }) => {
       <div className="p-4 bg-gray-50 rounded">
         <h4 className="font-semibold mb-2">Service Details</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Service ID (Manual)
+            </label>
+            <input
+              {...register("service.service_id", {
+                required: "Service ID is required",
+                validate: (v) => v.length === 10 || "Must be 10 characters",
+              })}
+              className={`w-full p-2 border rounded ${
+                errors.service?.service_id
+                  ? "border-red-500"
+                  : "border-gray-300"
+              }`}
+              placeholder="e.g., SRV001"
+              maxLength={10}
+            />
+            {errors.service?.service_id && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.service.service_id.message}
+              </p>
+            )}
+          </div>
           <div>
             <label className="block text-sm font-medium mb-1">Service No</label>
             <input
@@ -156,6 +177,29 @@ const ServiceForm = ({ empNo }) => {
         <h4 className="font-semibold mb-2">Promotion Details</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
+            <label className="block text-sm font-medium mb-1">
+              Promotion ID (Manual)
+            </label>
+            <input
+              {...register("promotion.promotion_id", {
+                required: "Promotion ID is required",
+                validate: (v) => v.length === 10 || "Must be 10 characters",
+              })}
+              className={`w-full p-2 border rounded ${
+                errors.promotion?.promotion_id
+                  ? "border-red-500"
+                  : "border-gray-300"
+              }`}
+              placeholder="e.g., PROM001"
+              maxLength={10}
+            />
+            {errors.promotion?.promotion_id && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.promotion.promotion_id.message}
+              </p>
+            )}
+          </div>
+          <div>
             <label className="block text-sm font-medium mb-1">Rank</label>
             <select
               {...register("promotion.rank_id", {
@@ -248,10 +292,34 @@ const ServiceForm = ({ empNo }) => {
           </div>
         </div>
       </div>
+      
       {/* Posting Sub-Section */}
       <div className="p-4 bg-green-50 rounded">
         <h4 className="font-semibold mb-2">Posting Details</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Posting ID (Manual)
+            </label>
+            <input
+              {...register("posting.posting_id", {
+                required: "Posting ID is required",
+                validate: (v) => v.length === 10 || "Must be 10 characters",
+              })}
+              className={`w-full p-2 border rounded ${
+                errors.posting?.posting_id
+                  ? "border-red-500"
+                  : "border-gray-300"
+              }`}
+              placeholder="e.g., POST001"
+              maxLength={10}
+            />
+            {errors.posting?.posting_id && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.posting.posting_id.message}
+              </p>
+            )}
+          </div>
           <div>
             <label className="block text-sm font-medium mb-1">Unit</label>
             <select

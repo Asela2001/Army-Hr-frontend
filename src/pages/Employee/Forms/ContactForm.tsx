@@ -1,20 +1,46 @@
-import React from "react";
 import { useFormContext } from "react-hook-form";
 
 const ContactForm = ({ empNo }) => {
-  // Fixed prop name
   const {
     register,
     formState: { errors },
   } = useFormContext();
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <input type="hidden" {...register("contact.emp_no")} value={empNo} />{" "}
-      {/* Fixed value */}
+      <div>
+        <label className="block text-sm font-medium mb-1">EMP No</label>
+        <input
+          {...register("contact.emp_no")}
+          defaultValue={empNo}
+          readOnly
+          className="w-full p-2 border rounded border-gray-300 bg-gray-100"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">
+          Contact ID (Manual)
+        </label>
+        <input
+          {...register("contact.contact_id", {
+            required: "Contact ID is required",
+          })}
+          className={`w-full p-2 border rounded ${
+            errors.contact?.contact_id ? "border-red-500" : "border-gray-300"
+          }`}
+          placeholder="e.g., CNT001"
+        />
+        {errors['contact.contact_id'] && (
+          <p className="text-red-500 text-xs mt-1">
+            {errors['contact.contact_id'].message}
+          </p>
+        )}
+      </div>
       <div>
         <label className="block text-sm font-medium mb-1">Telephone</label>
         <input
-          {...register("contact.telephone")}
+          {...register("contact.telephone", {
+            required: "Telephone is required",
+          })}
           className={`w-full p-2 border rounded ${
             errors.contact?.telephone ? "border-red-500" : "border-gray-300"
           }`}
@@ -23,8 +49,7 @@ const ContactForm = ({ empNo }) => {
           <p className="text-red-500 text-xs mt-1">
             {errors.contact.telephone.message}
           </p>
-        )}{" "}
-        {/* Added error display */}
+        )}
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Email</label>
@@ -47,7 +72,7 @@ const ContactForm = ({ empNo }) => {
           {...register("contact.address")}
           className={`w-full p-2 border rounded ${
             errors.contact?.address ? "border-red-500" : "border-gray-300"
-          }`} // Added error class
+          }`}
           rows={3}
         />
         {errors.contact?.address && (

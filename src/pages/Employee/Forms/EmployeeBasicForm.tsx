@@ -1,4 +1,3 @@
-
 import { useFormContext } from "react-hook-form";
 
 const EmployeeBasicForm = ({ empNo }) => {
