@@ -3,8 +3,6 @@ import { useFormContext } from "react-hook-form";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
-
-
 const PaymentForm = ({ empNo }) => {
   const {
     register,
@@ -50,6 +48,27 @@ const PaymentForm = ({ empNo }) => {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <input type="hidden" {...register("payment.emp_no")} value={empNo} />{" "}
       {/* Auto-filled */}
+      <div>
+        <label className="block text-sm font-medium mb-1">
+          Payment ID (Manual)
+        </label>
+        <input
+          {...register("payment.payment_id", {
+            required: "Payment ID is required",
+            validate: (v) => v.length === 10 || "Must be 10 characters",
+          })}
+          className={`w-full p-2 border rounded ${
+            errors.payment?.payment_id ? "border-red-500" : "border-gray-300"
+          }`}
+          placeholder="e.g., PAYM001"
+          maxLength={10}
+        />
+        {errors.payment?.payment_id && (
+          <p className="text-red-500 text-xs mt-1">
+            {errors.payment.payment_id.message}
+          </p>
+        )}
+      </div>
       <div>
         <label className="block text-sm font-medium mb-1">Pay Code</label>
         <input

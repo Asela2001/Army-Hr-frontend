@@ -64,7 +64,7 @@ const ServiceForm = ({ empNo }) => {
             <input
               {...register("service.service_id", {
                 required: "Service ID is required",
-                validate: (v) => v.length === 10 || "Must be 10 characters",
+                validate: (v) => v.length <= 10 || "Must be 10 characters",
               })}
               className={`w-full p-2 border rounded ${
                 errors.service?.service_id
@@ -183,7 +183,7 @@ const ServiceForm = ({ empNo }) => {
             <input
               {...register("promotion.promotion_id", {
                 required: "Promotion ID is required",
-                validate: (v) => v.length === 10 || "Must be 10 characters",
+                validate: (v) => v.length <= 10 || "Must be 10 characters",
               })}
               className={`w-full p-2 border rounded ${
                 errors.promotion?.promotion_id
@@ -292,7 +292,6 @@ const ServiceForm = ({ empNo }) => {
           </div>
         </div>
       </div>
-      
       {/* Posting Sub-Section */}
       <div className="p-4 bg-green-50 rounded">
         <h4 className="font-semibold mb-2">Posting Details</h4>
@@ -304,7 +303,7 @@ const ServiceForm = ({ empNo }) => {
             <input
               {...register("posting.posting_id", {
                 required: "Posting ID is required",
-                validate: (v) => v.length === 10 || "Must be 10 characters",
+                validate: (v) => v.length <= 10 || "Must be 10 characters",
               })}
               className={`w-full p-2 border rounded ${
                 errors.posting?.posting_id

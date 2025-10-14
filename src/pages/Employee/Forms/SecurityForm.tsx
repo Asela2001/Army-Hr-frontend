@@ -46,6 +46,27 @@ const SecurityForm = ({ empNo }) => {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <input type="hidden" {...register("security.emp_no")} value={empNo} />
       <div>
+        <label className="block text-sm font-medium mb-1">
+          Security ID (Manual)
+        </label>
+        <input
+          {...register("security.security_id", {
+            required: "Security ID is required",
+            validate: (v) => v.length <= 10 || "Must be 10 characters",
+          })}
+          className={`w-full p-2 border rounded ${
+            errors.security?.security_id ? "border-red-500" : "border-gray-300"
+          }`}
+          placeholder="e.g., SECU001"
+          maxLength={10}
+        />
+        {errors.security?.security_id && (
+          <p className="text-red-500 text-xs mt-1">
+            {errors.security.security_id.message}
+          </p>
+        )}
+      </div>
+      <div>
         <label className="block text-sm font-medium mb-1">Security Level</label>
         <input
           {...register("security.s_level", {

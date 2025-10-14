@@ -315,7 +315,6 @@ const EmployeeCreate = () => {
             // Create Promotion (uses service_id)
             const promotionPayload = {
               promotion_id: formData.promotion.promotion_id,
-              emp_no: empNo,
               service_id: serviceId,
               rank_id: formData.promotion.rank_id || null,
               appointment_id: formData.promotion.appointment_id || null,
@@ -324,7 +323,7 @@ const EmployeeCreate = () => {
             };
             await postSingleEntity("/promotion", promotionPayload, "Promotion");
 
-            // Create Posting (uses service_id)
+            // Create Posting (no emp_no)
             const postingPayload = {
               posting_id: formData.posting.posting_id,
               service_id: serviceId,
@@ -338,27 +337,54 @@ const EmployeeCreate = () => {
             break;
           }
           case "health": {
-            const healthPayload = { ...formData.health, emp_no: empNo };
-            await postSingleEntity("/health", healthPayload, "Health");
-            const medicalHistoryPayload = {
-              
-              ...formData.medical_history,
+            // Create Health first
+            const healthPayload = {
+              health_id: formData.health.health_id,
+              blood_group: formData.health.blood_group || null,
+              height: formData.health.height || null,
+              weight: formData.health.weight || null,
+              bmi: formData.health.bmi || null,
+              fitness_id: formData.health.fitness_id || null,
               emp_no: empNo,
             };
-            await postSingleEntity(
-              "/medical-history",
-              medicalHistoryPayload,
-              "Medical History"
-            );
+            const healthRes = await postSingleEntity("/health", healthPayload, "Health");
+            const healthId = healthRes?.data?.health_id || formData.health.health_id;
+
+            // Create MedicalHistory (no emp_no, use health_id)
+            const medicalHistoryPayload = {
+              mh_id: formData.medical_history.mh_id,
+              health_id: healthId,
+              check_date: formData.medical_history.check_date || null,
+              expire_date: formData.medical_history.expire_date || null,
+              status: formData.medical_history.status || null,
+            };
+            await postSingleEntity("/medical-history", medicalHistoryPayload, "Medical History");
             break;
           }
           case "payment": {
-            const paymentPayload = { ...formData.payment, emp_no: empNo };
+            const paymentPayload = {
+              payment_id: formData.payment.payment_id,
+              pay_code: formData.payment.pay_code || null,
+              basic_pay: formData.payment.basic_pay || null,
+              bank_acc_no: formData.payment.bank_acc_no || null,
+              insurance_no: formData.payment.insurance_no || null,
+              epf_no: formData.payment.epf_no || null,
+              allowance_id: formData.payment.allowance_id || null,
+              loan_id: formData.payment.loan_id || null,
+              emp_no: empNo,
+            };
             await postSingleEntity("/payment", paymentPayload, "Payment");
             break;
           }
           case "security": {
-            const securityPayload = { ...formData.security, emp_no: empNo };
+            const securityPayload = {
+              security_id: formData.security.security_id,
+              s_level: formData.security.s_level || null,
+              issue_date: formData.security.issue_date || null,
+              expire_date: formData.security.expire_date || null,
+              clearance_id: formData.security.clearance_id || null,
+              emp_no: empNo,
+            };
             await postSingleEntity("/security", securityPayload, "Security");
             break;
           }
