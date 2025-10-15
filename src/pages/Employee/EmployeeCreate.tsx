@@ -310,7 +310,7 @@ const EmployeeCreate = () => {
               "Service"
             );
             const serviceId =
-              serviceRes?.data?.service_id; // Use created service_id from response
+              serviceRes?.data?.service_id || formData.service.service_id;// Use created service_id from response
 
             // Create Promotion (uses service_id)
             const promotionPayload = {

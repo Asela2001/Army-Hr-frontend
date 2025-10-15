@@ -55,7 +55,7 @@ const PaymentForm = ({ empNo }) => {
         <input
           {...register("payment.payment_id", {
             required: "Payment ID is required",
-            validate: (v) => v.length === 10 || "Must be 10 characters",
+            validate: (v) => v.length <= 10 || "Must be 10 characters",
           })}
           className={`w-full p-2 border rounded ${
             errors.payment?.payment_id ? "border-red-500" : "border-gray-300"
@@ -130,7 +130,7 @@ const PaymentForm = ({ empNo }) => {
         <input
           {...register("payment.insurance_no", {
             required: "Insurance No is required",
-            validate: (v) => v.length === 10 || "Must be 10 characters",
+            validate: (v) => v.length <= 10 || "Must be 10 characters",
           })}
           className={`w-full p-2 border rounded ${
             errors.payment?.insurance_no ? "border-red-500" : "border-gray-300"
