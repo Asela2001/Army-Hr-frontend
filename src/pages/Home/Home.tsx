@@ -16,6 +16,42 @@ const Home = () => {
     }, 8000);
     return () => clearInterval(interval);
   }, [images.length]);
+
+  const modules = [
+    {
+      id: "employee",
+      title: "Employee",
+      description: "Manage employee records and information",
+      icon: "👤",
+      color: "text-blue-400",
+      path: "/employee",
+    },
+    {
+      id: "master",
+      title: "Master",
+      description: "Configure master data and settings",
+      icon: "⚙️",
+      color: "text-green-400",
+      path: "/master",
+    },
+    {
+      id: "dashboard",
+      title: "Dashboard",
+      description: "View analytics and insights",
+      icon: "📊",
+      color: "text-purple-400",
+      path: "/dashboard",
+    },
+    {
+      id: "penalty",
+      title: "Penalty",
+      description: "Track and manage penalties",
+      icon: "⚠️",
+      color: "text-orange-400",
+      path: "/penalty",
+    },
+  ];
+
   return (
     <div className="relative h-screen overflow-hidden">
       {images.map((image, index) => (
@@ -30,34 +66,24 @@ const Home = () => {
           }}
         ></div>
       ))}
-      <div className="flex flex-col items-center justify-center h-full relative z-10">
-        <div className="relative z-10 text-center text-white mt-20">
-          <div className="p-4">
-            <button
-              className="px-4 py-2 bg-[#7c8b24] w-50 cursor-pointer hover:bg-[#6b7a1f]  text-white rounded"
-              onClick={() => navigate("/employee")}
+      <div className="flex flex-col items-center justify-center h-full relative z-10 px-4">
+        <h1 className="text-2xl font-bold text-white mb-8 text-center">
+          Select a module to get started
+        </h1>
+        <div className="grid grid-cols-2 gap-6 max-w-4xl w-full">
+          {modules.map((module) => (
+            <div
+              key={module.id}
+              className="bg-black/20 backdrop-blur-sm rounded-xl p-6 text-white border border-white/20 hover:bg-black/30 transition-all duration-300 cursor-pointer shadow-lg"
+              onClick={() => navigate(module.path)}
             >
-              Employee
-            </button>
-          </div>
-          <div className="p-4">
-            <button
-              className="px-4 py-2 bg-[#7c8b24] w-50 cursor-pointer hover:bg-[#6b7a1f] text-white rounded"
-              onClick={() => navigate("/master")}
-            >
-              Master
-            </button>
-          </div>
-          <div className="p-4">
-            <button className="px-4 py-2 bg-[#7c8b24] w-50 cursor-pointer hover:bg-[#6b7a1f] text-white rounded" onClick={() => navigate("/dashboard")}>
-              Dashboard
-            </button>
-          </div>
-          <div className="p-4">
-            <button className="px-4 py-2 bg-[#7c8b24] w-50 cursor-pointer hover:bg-[#6b7a1f] text-white rounded" onClick={() => navigate("/penalty")}>
-              Penalty
-            </button>
-          </div>
+              <div className={`text-4xl mb-4 ${module.color}`}>
+                {module.icon}
+              </div>
+              <h3 className="text-xl font-semibold mb-2">{module.title}</h3>
+              <p className="text-gray-300 text-sm">{module.description}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>

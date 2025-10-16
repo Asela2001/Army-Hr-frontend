@@ -1,23 +1,29 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import axios from "axios";
 
 interface ExpiringItem {
-  id: number;
+  id: string;
   name: string;
   expiryDate: string;
   daysLeft: number;
 }
 
 interface PromotedEmployee {
-  id: number;
+  id: string;
   name: string;
   promotionDate: string;
 }
 
+interface GenderStats {
+  maleCount: number;
+  femaleCount: number;
+}
+
+
 const Dashboard = () => {
   const navigate = useNavigate();
 
-  // Mock data - replace with actual API calls or state management (e.g., Redux, Context)
   const [nearlyExpiringMedical, setNearlyExpiringMedical] = useState<
     ExpiringItem[]
   >([]);
@@ -30,113 +36,145 @@ const Dashboard = () => {
   const [nearlyExpiringMissions, setNearlyExpiringMissions] = useState<
     ExpiringItem[]
   >([]);
-  const [maleCount, setMaleCount] = useState(0);
-  const [femaleCount, setFemaleCount] = useState(0);
+  const [genderStats, setGenderStats] = useState<GenderStats>({
+    maleCount: 0,
+    femaleCount: 0,
+  });
   const [promotedEmployees, setPromotedEmployees] = useState<
     PromotedEmployee[]
   >([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedMedical, setExpandedMedical] = useState(false);
+  const [expandedSecurity, setExpandedSecurity] = useState(false);
+  const [expandedAwards, setExpandedAwards] = useState(false);
+  const [expandedMissions, setExpandedMissions] = useState(false);
 
   useEffect(() => {
-    const fetchNearlyExpiringMedical = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        // Assuming a new global endpoint: GET /employee/medical-histories/all
-        // This endpoint should be added to the backend controller and service to fetch all records with joins to Employee and Health for names
-        const response = await axios.get<RawMedicalHistory[]>(
-          "/employee/medical-histories/all"
+        const baseUrl = "http://localhost:3000";
+
+        // Fetch nearly expiring medical
+        const medicalResponse = await axios.get<ExpiringItem[]>(
+          `${baseUrl}/employee/dashboard/nearly-expiring-medical`
         );
-        const allMedicalHistories = response.data;
+        console.log("Medical Response Data:", medicalResponse.data);
+        let medicalData = Array.isArray(medicalResponse.data)
+          ? medicalResponse.data.sort((a, b) => a.daysLeft - b.daysLeft)
+          : [];
+        if (medicalData.length === 0) {
+          console.log("Using sample medical data");
+          medicalData = sampleMedical;
+        }
+        console.log("Processed Medical Data:", medicalData);
+        setNearlyExpiringMedical(medicalData);
 
-        // Current date as provided
-        const today = new Date("2025-10-15");
-        const thirtyDaysFromNow = new Date(
-          today.getTime() + 30 * 24 * 60 * 60 * 1000
+        // Fetch nearly expiring security
+        const securityResponse = await axios.get<ExpiringItem[]>(
+          `${baseUrl}/employee/dashboard/nearly-expiring-security`
         );
+        console.log("Security Response Data:", securityResponse.data);
+        let securityData = Array.isArray(securityResponse.data)
+          ? securityResponse.data.sort((a, b) => a.daysLeft - b.daysLeft)
+          : [];
+        if (securityData.length === 0) {
+          console.log("Using sample security data");
+          securityData = sampleSecurity;
+        }
+        console.log("Processed Security Data:", securityData);
+        setNearlyExpiringSecurity(securityData);
 
-        const nearlyExpiring = allMedicalHistories
-          .filter((item) => item.status === "active") // Adjust filter based on your status logic (e.g., !== 'expired')
-          .map((item) => {
-            const expireDate = new Date(item.expire_date);
-            const timeDiff = expireDate.getTime() - today.getTime();
-            const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+        // Fetch nearly expiring awards
+        const awardsResponse = await axios.get<ExpiringItem[]>(
+          `${baseUrl}/employee/dashboard/nearly-expiring-awards`
+        );
+        console.log("Awards Response Data:", awardsResponse.data);
+        let awardsData = Array.isArray(awardsResponse.data)
+          ? awardsResponse.data.sort((a, b) => a.daysLeft - b.daysLeft)
+          : [];
+        if (awardsData.length === 0) {
+          console.log("Using sample awards data");
+          awardsData = sampleAwards;
+        }
+        console.log("Processed Awards Data:", awardsData);
+        setNearlyExpiringAwards(awardsData);
 
-            return {
-              id: parseInt(item.mh_id, 10),
-              name: `${item.employee_name || "Unknown Employee"} - ${
-                item.health_name || "Medical Check"
-              }`,
-              expiryDate: item.expire_date,
-              daysLeft: daysLeft > 0 ? daysLeft : 0, // Ensure non-negative
-            };
-          })
-          .filter((item) => item.daysLeft > 0 && item.daysLeft <= 30)
-          .sort((a, b) => a.daysLeft - b.daysLeft); // Sort by soonest expiring first
+        // Fetch nearly expiring missions
+        const missionsResponse = await axios.get<ExpiringItem[]>(
+          `${baseUrl}/employee/dashboard/nearly-expiring-missions`
+        );
+        console.log("Missions Response Data:", missionsResponse.data);
+        let missionsData = Array.isArray(missionsResponse.data)
+          ? missionsResponse.data.sort((a, b) => a.daysLeft - b.daysLeft)
+          : [];
+        if (missionsData.length === 0) {
+          console.log("Using sample missions data");
+          missionsData = sampleMissions;
+        }
+        console.log("Processed Missions Data:", missionsData);
+        setNearlyExpiringMissions(missionsData);
 
-        setNearlyExpiringMedical(nearlyExpiring);
+        // Fetch gender stats
+        const genderResponse = await axios.get<GenderStats>(
+          `${baseUrl}/employee/dashboard/gender-stats`
+        );
+        console.log("Gender Response Data:", genderResponse.data);
+        let genderData = genderResponse.data;
+        let processedGenderStats = {
+          maleCount: (genderData as any)?.maleCount ?? 0,
+          femaleCount: (genderData as any)?.femaleCount ?? 0,
+        };
+        if (
+          processedGenderStats.maleCount === 0 &&
+          processedGenderStats.femaleCount === 0
+        ) {
+          console.log("Using sample gender stats");
+          processedGenderStats = sampleGenderStats;
+        }
+        console.log("Processed Gender Stats:", processedGenderStats);
+        setGenderStats(processedGenderStats);
+
+        // Fetch promoted employees
+        const promotionsResponse = await axios.get<PromotedEmployee[]>(
+          `${baseUrl}/employee/dashboard/promotions-last-year`
+        );
+        console.log("Promotions Response Data:", promotionsResponse.data);
+        let promotionsData = Array.isArray(promotionsResponse.data)
+          ? promotionsResponse.data
+          : [];
+        if (promotionsData.length === 0) {
+          console.log("Using sample promotions data");
+          promotionsData = samplePromotions;
+        }
+        console.log("Processed Promotions Data:", promotionsData);
+        setPromotedEmployees(promotionsData);
       } catch (error) {
-        console.error("Error fetching nearly expiring medical data:", error);
-        // Optionally set to empty array or show error state
+        console.error("Error fetching dashboard data:", error);
+        // Fallback to sample data on error
+        console.log("Using sample data due to error");
+        setNearlyExpiringMedical(sampleMedical);
+        setNearlyExpiringSecurity(sampleSecurity);
+        setNearlyExpiringAwards(sampleAwards);
+        setNearlyExpiringMissions(sampleMissions);
+        setGenderStats(sampleGenderStats);
+        setPromotedEmployees(samplePromotions);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchNearlyExpiringMedical();
-
-    // Simulate fetching other data - replace with real API calls similarly
-    // Define "nearly expiring" as within 30 days from current date (Oct 15, 2025)
-    const currentDate = new Date("2025-10-15");
-    const thirtyDaysFromNow = new Date(
-      currentDate.getTime() + 30 * 24 * 60 * 60 * 1000
-    );
-
-    // Mock nearly expiring security
-    setNearlyExpiringSecurity([
-      {
-        id: 3,
-        name: "Alice Johnson - Security Badge",
-        expiryDate: "2025-10-18",
-        daysLeft: 3,
-      },
-    ]);
-
-    // Mock nearly expiring awards
-    setNearlyExpiringAwards([
-      {
-        id: 4,
-        name: "Bob Wilson - Performance Award",
-        expiryDate: "2025-10-28",
-        daysLeft: 13,
-      },
-      {
-        id: 5,
-        name: "Carol Davis - Innovation Award",
-        expiryDate: "2025-11-02",
-        daysLeft: 18,
-      },
-    ]);
-
-    // Mock nearly expiring missions
-    setNearlyExpiringMissions([
-      {
-        id: 6,
-        name: "Team A - Project Mission",
-        expiryDate: "2025-10-22",
-        daysLeft: 7,
-      },
-    ]);
-
-    // Mock gender counts
-    setMaleCount(45);
-    setFemaleCount(32);
-
-    // Mock promoted employees in the last year (since Oct 15, 2024)
-    setPromotedEmployees([
-      { id: 7, name: "Mike Brown", promotionDate: "2025-03-10" },
-      { id: 8, name: "Sarah Lee", promotionDate: "2024-12-05" },
-      { id: 9, name: "Tom Garcia", promotionDate: "2025-06-20" },
-    ]);
+    fetchData();
   }, []);
 
   const handleBackToHome = () => {
     navigate("/");
+  };
+
+  const toggleExpanded = (
+    setter: React.Dispatch<React.SetStateAction<boolean>>
+  ) => {
+    setter((prev) => !prev);
   };
 
   const getExpiringList = (items: ExpiringItem[]) => (
@@ -144,7 +182,9 @@ const Dashboard = () => {
       {items.map((item) => (
         <li
           key={item.id}
-          className="text-sm text-gray-600 flex justify-between"
+          className={`text-sm text-gray-600 flex justify-between p-2 rounded ${
+            item.daysLeft < 10 ? "bg-red-50" : ""
+          }`}
         >
           <span className="truncate">{item.name}</span>
           <span
@@ -161,6 +201,15 @@ const Dashboard = () => {
       )}
     </ul>
   );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-xl text-gray-600">Loading Dashboard...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -177,12 +226,42 @@ const Dashboard = () => {
 
         {/* Main Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-          {/* Nearly Expiring Cards */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-red-100 rounded-full">
+          {/* Nearly Expiring Medical Card */}
+          <div className="bg-white rounded-lg shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow">
+            <div
+              className="flex items-center justify-between"
+              onClick={() => toggleExpanded(setExpandedMedical)}
+            >
+              <div className="flex items-center">
+                <div className="p-2 bg-red-100 rounded-full">
+                  <svg
+                    className="w-6 h-6 text-red-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">
+                    Nearly Expiring Medical
+                  </h3>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {nearlyExpiringMedical.length}
+                  </p>
+                </div>
+              </div>
+              <button className="text-gray-400 hover:text-gray-600">
                 <svg
-                  className="w-6 h-6 text-red-500"
+                  className={`w-5 h-5 transform transition-transform ${
+                    expandedMedical ? "rotate-180" : ""
+                  }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -191,27 +270,50 @@ const Dashboard = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    d="M19 9l-7 7-7-7"
                   />
                 </svg>
-              </div>
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500">
-                  Nearly Expiring Medical
-                </h3>
-                <p className="text-2xl font-bold text-gray-900">
-                  {nearlyExpiringMedical.length}
-                </p>
-              </div>
+              </button>
             </div>
-            {getExpiringList(nearlyExpiringMedical)}
+            {expandedMedical && getExpiringList(nearlyExpiringMedical)}
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-full">
+          {/* Nearly Expiring Security Card */}
+          <div className="bg-white rounded-lg shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow">
+            <div
+              className="flex items-center justify-between"
+              onClick={() => toggleExpanded(setExpandedSecurity)}
+            >
+              <div className="flex items-center">
+                <div className="p-2 bg-yellow-100 rounded-full">
+                  <svg
+                    className="w-6 h-6 text-yellow-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">
+                    Nearly Expiring Security
+                  </h3>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {nearlyExpiringSecurity.length}
+                  </p>
+                </div>
+              </div>
+              <button className="text-gray-400 hover:text-gray-600">
                 <svg
-                  className="w-6 h-6 text-yellow-500"
+                  className={`w-5 h-5 transform transition-transform ${
+                    expandedSecurity ? "rotate-180" : ""
+                  }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -220,27 +322,50 @@ const Dashboard = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    d="M19 9l-7 7-7-7"
                   />
                 </svg>
-              </div>
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500">
-                  Nearly Expiring Security
-                </h3>
-                <p className="text-2xl font-bold text-gray-900">
-                  {nearlyExpiringSecurity.length}
-                </p>
-              </div>
+              </button>
             </div>
-            {getExpiringList(nearlyExpiringSecurity)}
+            {expandedSecurity && getExpiringList(nearlyExpiringSecurity)}
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-full">
+          {/* Nearly Expiring Awards Card */}
+          <div className="bg-white rounded-lg shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow">
+            <div
+              className="flex items-center justify-between"
+              onClick={() => toggleExpanded(setExpandedAwards)}
+            >
+              <div className="flex items-center">
+                <div className="p-2 bg-blue-100 rounded-full">
+                  <svg
+                    className="w-6 h-6 text-blue-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">
+                    Nearly Expiring Awards
+                  </h3>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {nearlyExpiringAwards.length}
+                  </p>
+                </div>
+              </div>
+              <button className="text-gray-400 hover:text-gray-600">
                 <svg
-                  className="w-6 h-6 text-blue-500"
+                  className={`w-5 h-5 transform transition-transform ${
+                    expandedAwards ? "rotate-180" : ""
+                  }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -249,27 +374,50 @@ const Dashboard = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    d="M19 9l-7 7-7-7"
                   />
                 </svg>
-              </div>
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500">
-                  Nearly Expiring Awards
-                </h3>
-                <p className="text-2xl font-bold text-gray-900">
-                  {nearlyExpiringAwards.length}
-                </p>
-              </div>
+              </button>
             </div>
-            {getExpiringList(nearlyExpiringAwards)}
+            {expandedAwards && getExpiringList(nearlyExpiringAwards)}
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-full">
+          {/* Nearly Expiring Missions Card */}
+          <div className="bg-white rounded-lg shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow">
+            <div
+              className="flex items-center justify-between"
+              onClick={() => toggleExpanded(setExpandedMissions)}
+            >
+              <div className="flex items-center">
+                <div className="p-2 bg-green-100 rounded-full">
+                  <svg
+                    className="w-6 h-6 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">
+                    Nearly Expiring Missions
+                  </h3>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {nearlyExpiringMissions.length}
+                  </p>
+                </div>
+              </div>
+              <button className="text-gray-400 hover:text-gray-600">
                 <svg
-                  className="w-6 h-6 text-green-500"
+                  className={`w-5 h-5 transform transition-transform ${
+                    expandedMissions ? "rotate-180" : ""
+                  }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -278,20 +426,12 @@ const Dashboard = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                    d="M19 9l-7 7-7-7"
                   />
                 </svg>
-              </div>
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500">
-                  Nearly Expiring Missions
-                </h3>
-                <p className="text-2xl font-bold text-gray-900">
-                  {nearlyExpiringMissions.length}
-                </p>
-              </div>
+              </button>
             </div>
-            {getExpiringList(nearlyExpiringMissions)}
+            {expandedMissions && getExpiringList(nearlyExpiringMissions)}
           </div>
 
           {/* Gender Counts Card */}
@@ -303,18 +443,18 @@ const Dashboard = () => {
               <div className="flex justify-between items-center bg-blue-50 p-3 rounded-md">
                 <span className="text-gray-700">Male</span>
                 <span className="text-2xl font-bold text-blue-600">
-                  {maleCount}
+                  {genderStats.maleCount}
                 </span>
               </div>
               <div className="flex justify-between items-center bg-pink-50 p-3 rounded-md">
                 <span className="text-gray-700">Female</span>
                 <span className="text-2xl font-bold text-pink-600">
-                  {femaleCount}
+                  {genderStats.femaleCount}
                 </span>
               </div>
             </div>
             <p className="text-sm text-gray-500 text-center mt-4">
-              Total: {maleCount + femaleCount}
+              Total: {genderStats.maleCount + genderStats.femaleCount}
             </p>
           </div>
 
